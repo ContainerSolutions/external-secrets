@@ -44,6 +44,7 @@ type client struct {
 }
 
 func (ibm *client) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
+	//	if (ibm.client == nil) || ibm.
 
 }
 
@@ -53,17 +54,16 @@ func (ibm *client) GetSecretMap(ctx context.Context, ref esv1alpha1.ExternalSecr
 
 func (p *provider) NewClient(ctx context.Context, store esv1alpha1.GenericStore, kube kclient.Client, namespace string) (provider.SecretsClient, error) {
 	storeSpec := store.GetSpec()
-	imbSpec := storeSpec.Provider.IBM
+	ibmSpec := storeSpec.Provider.IBMProvider
 
 	secretsManager, err := sm.NewSecretsManagerV1(&sm.SecretsManagerV1Options{
-		URL: "<SERVICE_URL>",
+		URL: ibmSpec.ServiceURL,
 		Authenticator: &core.IamAuthenticator{
-			ApiKey: "<IBM_CLOUD_API_KEY>",
+			ApiKey: ibmSpec.Auth.APIKey,
 		},
 	})
-
 	if err != nil {
-		return nil, fmt.Errorf(errIBMClient,err)
+		return nil, fmt.Errorf(errIBMClient, err)
 	}
 
 	iStore := &client{

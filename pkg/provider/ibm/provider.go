@@ -1,16 +1,30 @@
 package ibm
 
 import (
-  sm "github.com/IBM/secrets-manager-go-sdk/ibm-cloud-secrets-manager-api-v1"
+	"context"
+
+	"github.com/IBM/go-sdk-core/v5/core"
+	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
+	"github.com/external-secrets/external-secrets/pkg/provider/aws/session"
+	"github.com/go-logr/logr"
 )
 
 type provider struct {
-
 }
 
 func (p *provider) NewClient(ctx context.Context, store esv1alpha1.GenericStore, kube kclient.Client, namespace string) (provider.SecretsClient, error) {
 	storeSpec := store.GetSpec()
-    imbSpec := storeSpec.Provider.IBM
+	imbSpec := storeSpec.Provider.IBM
+
+	secretsManager, err := sm.NewSecretsManagerV1(&sm.SecretsManagerV1Options{
+		URL: "<SERVICE_URL>",
+		Authenticator: &core.IamAuthenticator{
+			ApiKey: "<IBM_CLOUD_API_KEY>",
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	iStore := &client{
 		kube:      kube,
@@ -21,7 +35,7 @@ func (p *provider) NewClient(ctx context.Context, store esv1alpha1.GenericStore,
 	}
 
 	cfg := bluemix.Config{
-		bluemix.Config.IAMAccessToken: 
+		//	bluemix.Config.IAMAccessToken:
 	}
 
 	session = session.New(&cfg)

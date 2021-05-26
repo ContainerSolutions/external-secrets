@@ -18,76 +18,21 @@ import (
 	esmeta "github.com/external-secrets/external-secrets/apis/meta/v1"
 )
 
-type VaultKVStoreVersion string
 
-const (
-	VaultKVStoreV1 VaultKVStoreVersion = "v1"
-	VaultKVStoreV2 VaultKVStoreVersion = "v2"
-)
+// Configures an store to sync secrets using a IBM Cloud Secrets Manager
+// backend.
+type IBMProvider struct {
+	// Auth configures how secret-manager authenticates with the IBM secrets manager.
+	Auth IBMAuth `json:"auth"`
 
-// Configures an store to sync secrets using a HashiCorp Vault
-// KV backend.
-type VaultProvider struct {
-	// Auth configures how secret-manager authenticates with the Vault server.
-	Auth VaultAuth `json:"auth"`
-
-	// Server is the connection address for the Vault server, e.g: "https://vault.example.com:8200".
-	Server string `json:"server"`
-
-	// Path is the mount path of the Vault KV backend endpoint, e.g:
-	// "secret". The v2 KV secret engine version specific "/data" path suffix
-	// for fetching secrets from Vault is optional and will be appended
-	// if not present in specified path.
-	Path string `json:"path"`
-
-	// Version is the Vault KV secret engine version. This can be either "v1" or
-	// "v2". Version defaults to "v2".
-	// +kubebuilder:validation:Optional
-	// +kubebuilder:validation:Enum="v1";"v2"
-	// +kubebuilder:default:="v2"
-	Version VaultKVStoreVersion `json:"version"`
-
-	// Name of the vault namespace. Namespaces is a set of features within Vault Enterprise that allows
-	// Vault environments to support Secure Multi-tenancy. e.g: "ns1".
-	// More about namespaces can be found here https://www.vaultproject.io/docs/enterprise/namespaces
-	// +optional
-	Namespace *string `json:"namespace,omitempty"`
-
-	// PEM encoded CA bundle used to validate Vault server certificate. Only used
-	// if the Server URL is using HTTPS protocol. This parameter is ignored for
-	// plain HTTP protocol connection. If not set the system root certificates
-	// are used to validate the TLS connection.
-	// +optional
-	CABundle []byte `json:"caBundle,omitempty"`
+	// ServiceURL is the Endpoint URL that is specific to the Secrets Manager service instance
+	ServiceURL *string `json:"serviceUrl,omitempty"`
 }
 
-// VaultAuth is the configuration used to authenticate with a Vault server.
-// Only one of `tokenSecretRef`, `appRole`,  `kubernetes`, `ldap` or `jwt`
-// can be specified.
-type VaultAuth struct {
-	// TokenSecretRef authenticates with Vault by presenting a token.
-	// +optional
-	TokenSecretRef *esmeta.SecretKeySelector `json:"tokenSecretRef,omitempty"`
-
-	// AppRole authenticates with Vault using the App Role auth mechanism,
-	// with the role and secret stored in a Kubernetes Secret resource.
-	// +optional
-	AppRole *VaultAppRole `json:"appRole,omitempty"`
-
-	// Kubernetes authenticates with Vault by passing the ServiceAccount
-	// token stored in the named Secret resource to the Vault server.
-	// +optional
-	Kubernetes *VaultKubernetesAuth `json:"kubernetes,omitempty"`
-
-	// Ldap authenticates with Vault by passing username/password pair using
-	// the LDAP authentication method
-	// +optional
-	Ldap *VaultLdapAuth `json:"ldap,omitempty"`
-
-	// Jwt authenticates with Vault by passing role and JWT token using the
-	// JWT/OIDC authentication method
-	// +optional
-	Jwt *VaultJwtAuth `json:"jwt,omitempty"`
+// IBMAuth is the configuration used to authenticate with the IBM secrets manager.
+type IBMAuth struct {
+	// APIKey is used to authenticate to the secrets manager
+	APIKey *string `json:"apiKey,omitempty"`
 }
 
 // VaultAppRole authenticates with Vault using the App Role auth mechanism,

@@ -5,9 +5,10 @@ import (
 
 	"github.com/IBM/go-sdk-core/v5/core"
 	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
+	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	"github.com/go-logr/logr"
+	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
-
 
 type provider struct {
 }
@@ -18,6 +19,7 @@ const (
 	SSMEndpointEnv            = "IBM_SSM_ENDPOINT"
 
 	errUnableCreateSession                     = "unable to create session: %w"
+	errIBMClient                               = "cannot setup new ibm client: %w"
 	errUnknownProviderService                  = "unknown IBM Provider Service: %s"
 	errInvalidClusterStoreMissingAKIDNamespace = "invalid ClusterSecretStore: missing IBM AccessKeyID Namespace"
 	errInvalidClusterStoreMissingSAKNamespace  = "invalid ClusterSecretStore: missing IBM SecretAccessKey Namespace"
@@ -35,13 +37,12 @@ type client struct {
 	kube      kclient.Client
 	store     *esv1alpha1.IBMProvider
 	log       logr.Logger
-	client    Client
+	client    sm.SecretsManagerV1
 	namespace string
 	storeKind string
 }
 
 func (ibm *client) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
-
 
 }
 

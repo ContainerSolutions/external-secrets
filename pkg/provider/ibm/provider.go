@@ -13,6 +13,9 @@ import (
 )
 
 type provider struct {
+	IBMClient sm.SecretsManagerV1
+	ServiceUrl string
+
 }
 
 const (
@@ -39,7 +42,6 @@ type client struct {
 	kube      kclient.Client
 	store     *esv1alpha1.IBMProvider
 	log       logr.Logger
-	client    sm.SecretsManagerV1
 	namespace string
 	storeKind string
 }
@@ -55,12 +57,13 @@ func (ibm *client) GetSecretMap(ctx context.Context, ref esv1alpha1.ExternalSecr
 
 func (p *provider) NewClient(ctx context.Context, store esv1alpha1.GenericStore, kube kclient.Client, namespace string) (provider.SecretsClient, error) {
 	storeSpec := store.GetSpec()
-	ibmSpec := storeSpec.Provider.IBMProvider
+	ibmSpec := storeSpec.Provider.IBM
+	
 
 	secretsManager, err := sm.NewSecretsManagerV1(&sm.SecretsManagerV1Options{
-		URL: ibmSpec.ServiceURL,
+		URL: *ibmSpec.ServiceURL,
 		Authenticator: &core.IamAuthenticator{
-			ApiKey: ibmSpec.Auth.APIKey,
+			ApiKey: *ibmSpec.Auth.APIKey,
 		},
 	})
 	if err != nil {
@@ -68,7 +71,6 @@ func (p *provider) NewClient(ctx context.Context, store esv1alpha1.GenericStore,
 	}
 
 	iStore := &client{
-		client:    secretsManager,
 		kube:      kube,
 		store:     ibmSpec,
 		log:       ctrl.Log.WithName("provider").WithName("ibm"),
@@ -76,5 +78,7 @@ func (p *provider) NewClient(ctx context.Context, store esv1alpha1.GenericStore,
 		storeKind: store.GetObjectKind().GroupVersionKind().Kind,
 	}
 
-	return iStore, nil
+	// return iStore, nil
+    p.IBMClient=*secretsManager
+	return p,nil
 }

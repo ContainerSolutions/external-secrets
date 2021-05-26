@@ -14,10 +14,6 @@ limitations under the License.
 
 package v1alpha1
 
-import (
-	esmeta "github.com/external-secrets/external-secrets/apis/meta/v1"
-)
-
 // Configures an store to sync secrets using a IBM Cloud Secrets Manager
 // backend.
 type IBMProvider struct {

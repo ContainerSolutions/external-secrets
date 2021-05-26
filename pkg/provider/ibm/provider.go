@@ -8,6 +8,7 @@ import (
 	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	"github.com/go-logr/logr"
+	ctrl "sigs.k8s.io/controller-runtime"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 

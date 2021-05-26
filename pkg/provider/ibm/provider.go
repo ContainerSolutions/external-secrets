@@ -2,6 +2,7 @@ package ibm
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/IBM/go-sdk-core/v5/core"
 	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
@@ -62,7 +63,7 @@ func (p *provider) NewClient(ctx context.Context, store esv1alpha1.GenericStore,
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf(errIBMClient,err)
 	}
 
 	iStore := &client{

@@ -26,6 +26,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
+	utilpointer "k8s.io/utils/pointer"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
@@ -202,6 +203,7 @@ var _ = Describe("ExternalSecret controller", func() {
 				tplStaticKey: tplStaticVal,
 			},
 		}
+		tc.externalSecret.Spec.Target.Immutable = utilpointer.BoolPtr(true)
 		fakeProvider.WithGetSecret([]byte(secretVal), nil)
 		tc.checkSecret = func(es *esv1alpha1.ExternalSecret, secret *v1.Secret) {
 			Expect(externalSecretConditionShouldBe(ExternalSecretName, ExternalSecretNamespace, esv1alpha1.ExternalSecretReady, v1.ConditionFalse, 0.0)).To(BeTrue())
@@ -218,6 +220,8 @@ var _ = Describe("ExternalSecret controller", func() {
 			// labels/annotations should be taken from the template
 			Expect(secret.ObjectMeta.Labels).To(BeEquivalentTo(es.Spec.Target.Template.Metadata.Labels))
 			Expect(secret.ObjectMeta.Annotations).To(BeEquivalentTo(es.Spec.Target.Template.Metadata.Annotations))
+
+			Expect(utilpointer.BoolPtrDerefOr(secret.Immutable, false)).To(BeTrue())
 		}
 	}
 

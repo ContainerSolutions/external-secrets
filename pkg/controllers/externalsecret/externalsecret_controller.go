@@ -110,6 +110,7 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			Namespace: externalSecret.Namespace,
 		},
 		Data: make(map[string][]byte),
+		Immutable: externalSecret.Spec.Target.Immutable,
 	}
 	_, err = ctrl.CreateOrUpdate(ctx, r.Client, secret, func() error {
 		err = controllerutil.SetControllerReference(&externalSecret, &secret.ObjectMeta, r.Scheme)

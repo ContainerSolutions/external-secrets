@@ -34,7 +34,6 @@ const (
 
 type IBMSecretManagerClient interface {
 	GetSecret(getSecretOptions *sm.GetSecretOptions) (result *sm.GetSecret, response *core.DetailedResponse, err error)
-
 }
 
 type providerIBM struct {

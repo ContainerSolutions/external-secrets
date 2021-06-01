@@ -14,40 +14,30 @@ limitations under the License.
 package fake
 
 import (
-	"context"
 	"fmt"
+
+	"github.com/IBM/go-sdk-core/v5/core"
+	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"google.golang.org/grpc"
 )
 
-type MockSMClient struct {
-	accessSecretFn func(ctx context.Context, req *secretmanagerpb.AccessSecretVersionRequest, opts ...grpc.CallOption) (*secretmanagerpb.AccessSecretVersionResponse, error)
-	closeFn        func() error
+type IBMMockClient struct {
+	getSecret func(getSecretOptions *sm.GetSecretOptions) (result *sm.GetSecret, response *core.DetailedResponse, err error)
 }
 
-func (mc *MockSMClient) AccessSecretVersion(ctx context.Context, req *secretmanagerpb.AccessSecretVersionRequest, opts ...grpc.CallOption) (*secretmanagerpb.AccessSecretVersionResponse, error) {
-	return mc.accessSecretFn(ctx, req)
+func (mc *IBMMockClient) GetSecret(getSecretOptions *sm.GetSecretOptions) (result *sm.GetSecret, response *core.DetailedResponse, err error) {
+	return mc.getSecret(getSecretOptions)
 }
 
-func (mc *MockSMClient) Close() error {
-	return mc.closeFn()
-}
-
-func (mc *MockSMClient) NilClose() {
-	mc.closeFn = func() error {
-		return nil
-	}
-}
-
-func (mc *MockSMClient) WithValue(ctx context.Context, req *secretmanagerpb.AccessSecretVersionRequest, val *secretmanagerpb.AccessSecretVersionResponse, err error) {
-	mc.accessSecretFn = func(paramCtx context.Context, paramReq *secretmanagerpb.AccessSecretVersionRequest, paramOpts ...grpc.CallOption) (*secretmanagerpb.AccessSecretVersionResponse, error) {
+func (mc *IBMMockClient) WithValue(req *sm.GetSecretOptions, val *sm.GetSecret, err error) {
+	mc.getSecret = func(paramReq *sm.GetSecretOptions) (*sm.GetSecret, *core.DetailedResponse, error) {
 		// type secretmanagerpb.AccessSecretVersionRequest contains unexported fields
 		// use cmpopts.IgnoreUnexported to ignore all the unexported fields in the cmp.
-		if !cmp.Equal(paramReq, req, cmpopts.IgnoreUnexported(secretmanagerpb.AccessSecretVersionRequest{})) {
-			return nil, fmt.Errorf("unexpected test argument")
+		if !cmp.Equal(paramReq, req, cmpopts.IgnoreUnexported(sm.GetSecret{})) {
+			return nil, nil, fmt.Errorf("unexpected test argument")
 		}
-		return val, err
+		return val, nil, err
 	}
 }

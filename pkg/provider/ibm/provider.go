@@ -8,15 +8,8 @@ import (
 	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	"github.com/go-logr/logr"
-	ctrl "sigs.k8s.io/controller-runtime"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-type provider struct {
-	IBMClient sm.SecretsManagerV1
-	ServiceUrl string
-
-}
 
 const (
 	SecretsManagerEndpointEnv = "IBM_SECRETSMANAGER_ENDPOINT"
@@ -38,6 +31,11 @@ const (
 	errInvalidProvider                         = "invalid provider spec. Missing IBM field in store %s"
 )
 
+type providerIBM struct {
+	IBMClient  sm.SecretsManagerV1
+	ServiceUrl string
+}
+
 type client struct {
 	kube      kclient.Client
 	store     *esv1alpha1.IBMProvider
@@ -48,17 +46,17 @@ type client struct {
 
 func (ibm *client) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
 	//	if (ibm.client == nil) || ibm.
+	return nil, nil
 
 }
 
 func (ibm *client) GetSecretMap(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) (map[string][]byte, error) {
-
+	return nil, nil
 }
 
-func (p *provider) NewClient(ctx context.Context, store esv1alpha1.GenericStore, kube kclient.Client, namespace string) (provider.SecretsClient, error) {
+func (p *providerIBM) NewClient(ctx context.Context, store esv1alpha1.GenericStore, kube kclient.Client, namespace string) (Provider.SecretsClient, error) {
 	storeSpec := store.GetSpec()
 	ibmSpec := storeSpec.Provider.IBM
-	
 
 	secretsManager, err := sm.NewSecretsManagerV1(&sm.SecretsManagerV1Options{
 		URL: *ibmSpec.ServiceURL,
@@ -70,15 +68,15 @@ func (p *provider) NewClient(ctx context.Context, store esv1alpha1.GenericStore,
 		return nil, fmt.Errorf(errIBMClient, err)
 	}
 
-	iStore := &client{
-		kube:      kube,
-		store:     ibmSpec,
-		log:       ctrl.Log.WithName("provider").WithName("ibm"),
-		namespace: namespace,
-		storeKind: store.GetObjectKind().GroupVersionKind().Kind,
-	}
+	// iStore := &client{
+	// 	kube:      kube,
+	// 	store:     ibmSpec,
+	// 	log:       ctrl.Log.WithName("provider").WithName("ibm"),
+	// 	namespace: namespace,
+	// 	storeKind: store.GetObjectKind().GroupVersionKind().Kind,
+	// }
 
 	// return iStore, nil
-    p.IBMClient=*secretsManager
-	return p,nil
+	p.IBMClient = *secretsManager
+	return p, nil
 }

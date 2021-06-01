@@ -43,9 +43,9 @@ var (
 )
 
 type testCase struct {
-	secretStore    *esv1alpha1.SecretStore
-	externalSecret *esv1alpha1.ExternalSecret
-    immutableSecret *esv1alpha1.ExternalSecret   
+	secretStore     *esv1alpha1.SecretStore
+	externalSecret  *esv1alpha1.ExternalSecret
+	immutableSecret *esv1alpha1.ExternalSecret
 
 	// checkCondition should return true if the externalSecret
 	// has the expected condition
@@ -57,8 +57,6 @@ type testCase struct {
 
 	// optional. use this to test the secret value
 	checkSecret func(*esv1alpha1.ExternalSecret, *v1.Secret)
-
-
 }
 
 type testTweaks func(*testCase)
@@ -157,7 +155,7 @@ var _ = Describe("ExternalSecret controller", func() {
 						Name: ExternalSecretStore,
 					},
 					Target: esv1alpha1.ExternalSecretTarget{
-						Name: ExternalSecretTargetSecretName,
+						Name:      ExternalSecretTargetSecretName,
 						Immutable: utilpointer.BoolPtr(true),
 					},
 					Data: []esv1alpha1.ExternalSecretData{
@@ -203,12 +201,12 @@ var _ = Describe("ExternalSecret controller", func() {
 	}
 
 	syncWithImmutable := func(tc *testCase) {
-    const secretVal = "someValue"
-    fakeProvider.WithGetSecret([]byte(secretVal), nil)
+		const secretVal = "someValue"
+		fakeProvider.WithGetSecret([]byte(secretVal), nil)
 		tc.checkSecret = func(es *esv1alpha1.ExternalSecret, secret *v1.Secret) {
 			Expect(utilpointer.BoolPtrDerefOr(secret.Immutable, false)).To(BeTrue())
-	 	}
-  }
+		}
+	}
 
 	// when using a template it should be used as a blueprint
 	// to construct a new secret: labels, annotations and type
@@ -538,6 +536,7 @@ var _ = Describe("ExternalSecret controller", func() {
 			ctx := context.Background()
 			Expect(k8sClient.Create(ctx, tc.secretStore)).To(Succeed())
 			Expect(k8sClient.Create(ctx, tc.externalSecret)).Should(Succeed())
+			Expect(k8sClient.Create(ctx, tc.immutableSecret)).Should(Succeed())
 			esKey := types.NamespacedName{Name: ExternalSecretName, Namespace: ExternalSecretNamespace}
 			createdES := &esv1alpha1.ExternalSecret{}
 			Eventually(func() bool {

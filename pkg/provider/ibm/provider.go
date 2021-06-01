@@ -48,7 +48,6 @@ type client struct {
 func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
 	//	if (ibm.client == nil) || ibm.
 	return nil, nil
-
 }
 
 func (ibm *providerIBM) GetSecretMap(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) (map[string][]byte, error) {

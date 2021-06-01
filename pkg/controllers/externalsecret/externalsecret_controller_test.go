@@ -45,6 +45,7 @@ var (
 type testCase struct {
 	secretStore    *esv1alpha1.SecretStore
 	externalSecret *esv1alpha1.ExternalSecret
+    immutableSecret *esv1alpha1.ExternalSecret   
 
 	// checkCondition should return true if the externalSecret
 	// has the expected condition
@@ -56,6 +57,8 @@ type testCase struct {
 
 	// optional. use this to test the secret value
 	checkSecret func(*esv1alpha1.ExternalSecret, *v1.Secret)
+
+
 }
 
 type testTweaks func(*testCase)
@@ -144,6 +147,30 @@ var _ = Describe("ExternalSecret controller", func() {
 					},
 				},
 			},
+			immutableSecret: &esv1alpha1.ExternalSecret{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      ExternalSecretName,
+					Namespace: ExternalSecretNamespace,
+				},
+				Spec: esv1alpha1.ExternalSecretSpec{
+					SecretStoreRef: esv1alpha1.SecretStoreRef{
+						Name: ExternalSecretStore,
+					},
+					Target: esv1alpha1.ExternalSecretTarget{
+						Name: ExternalSecretTargetSecretName,
+						Immutable: utilpointer.BoolPtr(true),
+					},
+					Data: []esv1alpha1.ExternalSecretData{
+						{
+							SecretKey: targetProp,
+							RemoteRef: esv1alpha1.ExternalSecretDataRemoteRef{
+								Key:      remoteKey,
+								Property: remoteProperty,
+							},
+						},
+					},
+				},
+			},
 		}
 	}
 
@@ -177,7 +204,6 @@ var _ = Describe("ExternalSecret controller", func() {
 
 	syncWithImmutable := func(tc *testCase) {
     const secretVal = "someValue"
-		tc.externalSecret.Spec.Target.Immutable = utilpointer.BoolPtr(true)
     fakeProvider.WithGetSecret([]byte(secretVal), nil)
 		tc.checkSecret = func(es *esv1alpha1.ExternalSecret, secret *v1.Secret) {
 			Expect(utilpointer.BoolPtrDerefOr(secret.Immutable, false)).To(BeTrue())

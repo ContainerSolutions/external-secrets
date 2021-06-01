@@ -203,6 +203,8 @@ var _ = Describe("ExternalSecret controller", func() {
 		const secretVal = "someValue"
 		fakeProvider.WithGetSecret([]byte(secretVal), nil)
 		tc.checkSecret = func(es *esv1alpha1.ExternalSecret, secret *v1.Secret) {
+			fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+			fmt.Println(secret)
 			Expect(utilpointer.BoolPtrDerefOr(secret.Immutable, false)).To(BeTrue())
 		}
 	}

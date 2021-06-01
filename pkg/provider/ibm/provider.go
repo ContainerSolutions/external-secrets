@@ -32,8 +32,13 @@ const (
 	errInvalidProvider                         = "invalid provider spec. Missing IBM field in store %s"
 )
 
+type IBMSecretManagerClient interface {
+	GetSecret(getSecretOptions *sm.GetSecretOptions) (result *sm.GetSecret, response *core.DetailedResponse, err error)
+
+}
+
 type providerIBM struct {
-	IBMClient  sm.SecretsManagerV1
+	IBMClient  IBMSecretManagerClient
 	ServiceUrl string
 }
 
@@ -77,6 +82,6 @@ func (p *providerIBM) NewClient(ctx context.Context, store esv1alpha1.GenericSto
 	// }
 
 	// return iStore, nil
-	p.IBMClient = *secretsManager
+	p.IBMClient = secretsManager
 	return p, nil
 }

@@ -43,9 +43,8 @@ var (
 )
 
 type testCase struct {
-	secretStore     *esv1alpha1.SecretStore
-	externalSecret  *esv1alpha1.ExternalSecret
-	immutableSecret *esv1alpha1.ExternalSecret
+	secretStore    *esv1alpha1.SecretStore
+	externalSecret *esv1alpha1.ExternalSecret
 
 	// checkCondition should return true if the externalSecret
 	// has the expected condition
@@ -177,7 +176,7 @@ var _ = Describe("ExternalSecret controller", func() {
 	}
 
 	syncWithImmutable := func(tc *testCase) {
-        tc.externalSecret.Spec.Target.Immutable = utilpointer.BoolPtr(true)
+		tc.externalSecret.Spec.Target.Immutable = utilpointer.BoolPtr(true)
 		tc.checkSecret = func(es *esv1alpha1.ExternalSecret, secret *v1.Secret) {
 			Expect(utilpointer.BoolPtrDerefOr(secret.Immutable, false)).To(BeTrue())
 		}

@@ -17,6 +17,7 @@ package externalsecret
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -26,8 +27,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/discovery"
+	utilpointer "k8s.io/utils/pointer"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
@@ -109,8 +113,35 @@ func (r *Reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			Name:      externalSecret.Spec.Target.Name,
 			Namespace: externalSecret.Namespace,
 		},
-		Data: make(map[string][]byte),
+		Data:      make(map[string][]byte),
 		Immutable: externalSecret.Spec.Target.Immutable,
+	}
+	log.Info("ALOU")
+	// Get a config to talk to the apiserver
+	cfg, err := config.GetConfig()
+	if err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
+	// Create the discoveryClient
+	discoveryClient, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		log.Error(err, "Unable to create discovery client")
+		os.Exit(1)
+	}
+	if secret.Immutable == utilpointer.BoolPtr(true) {
+
+		version, err := discoveryClient.ServerVersion()
+		if err != nil {
+			return ctrl.Result{}, fmt.Errorf("could not fetch server version: %w", err)
+		}
+		log.Info(version.Major)
+		log.Info(version.Minor)
+		// major := version.Get().Major
+		// minor := version.Get().Minor
+		// combinedVersion := strconv.ParseFloat((fmt.Sprintf("%s.%s", major, minor)))
+		//
 	}
 	_, err = ctrl.CreateOrUpdate(ctx, r.Client, secret, func() error {
 		err = controllerutil.SetControllerReference(&externalSecret, &secret.ObjectMeta, r.Scheme)

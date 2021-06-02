@@ -145,30 +145,6 @@ var _ = Describe("ExternalSecret controller", func() {
 					},
 				},
 			},
-			immutableSecret: &esv1alpha1.ExternalSecret{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      ExternalSecretName,
-					Namespace: ExternalSecretNamespace,
-				},
-				Spec: esv1alpha1.ExternalSecretSpec{
-					SecretStoreRef: esv1alpha1.SecretStoreRef{
-						Name: ExternalSecretStore,
-					},
-					Target: esv1alpha1.ExternalSecretTarget{
-						Name:      ExternalSecretTargetSecretName,
-						Immutable: utilpointer.BoolPtr(true),
-					},
-					Data: []esv1alpha1.ExternalSecretData{
-						{
-							SecretKey: targetProp,
-							RemoteRef: esv1alpha1.ExternalSecretDataRemoteRef{
-								Key:      remoteKey,
-								Property: remoteProperty,
-							},
-						},
-					},
-				},
-			},
 		}
 	}
 
@@ -201,8 +177,7 @@ var _ = Describe("ExternalSecret controller", func() {
 	}
 
 	syncWithImmutable := func(tc *testCase) {
-		const secretVal = "someValue"
-		fakeProvider.WithGetSecret([]byte(secretVal), nil)
+        tc.externalSecret.Spec.Target.Immutable = utilpointer.BoolPtr(true)
 		tc.checkSecret = func(es *esv1alpha1.ExternalSecret, secret *v1.Secret) {
 			Expect(utilpointer.BoolPtrDerefOr(secret.Immutable, false)).To(BeTrue())
 		}
@@ -536,7 +511,6 @@ var _ = Describe("ExternalSecret controller", func() {
 			ctx := context.Background()
 			Expect(k8sClient.Create(ctx, tc.secretStore)).To(Succeed())
 			Expect(k8sClient.Create(ctx, tc.externalSecret)).Should(Succeed())
-			Expect(k8sClient.Create(ctx, tc.immutableSecret)).Should(Succeed())
 			esKey := types.NamespacedName{Name: ExternalSecretName, Namespace: ExternalSecretNamespace}
 			createdES := &esv1alpha1.ExternalSecret{}
 			Eventually(func() bool {

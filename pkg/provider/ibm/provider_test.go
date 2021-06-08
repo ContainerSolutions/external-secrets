@@ -93,15 +93,23 @@ var setAPIErr = func(smtc *secretManagerTestCase) {
 
 // test the sm<->gcp interface
 // make sure correct values are passed and errors are handled accordingly.
-func TestSecretManagerGetSecret(t *testing.T) {
+func TestIBMSecretManagerGetSecret(t *testing.T) {
 	// good case: default version is set
 	// key is passed in, output is sent back
 	setSecretString := func(smtc *secretManagerTestCase) {
-		smtc.apiOutput.Resources[0] = &sm.SecretResource{
-			Type:       utilpointer.StringPtr("testytype"),
-			Name:       utilpointer.StringPtr("testyname"),
-			SecretData: utilpointer.StringPtr("testysecretdata"),
-		}
+		resources := []sm.SecretResourceIntf{
+			&sm.SecretResource{
+				Type:       utilpointer.StringPtr("testytype"),
+				Name:       utilpointer.StringPtr("testyname"),
+				SecretData: utilpointer.StringPtr("testysecretdata"),
+			}}
+		// resources[0] = &sm.SecretResource{
+		// 	Type:       utilpointer.StringPtr("testytype"),
+		// 	Name:       utilpointer.StringPtr("testyname"),
+		// 	SecretData: utilpointer.StringPtr("testysecretdata"),
+		// }
+
+		smtc.apiOutput.Resources = resources
 		smtc.expectedSecret = "testtesttest"
 	}
 

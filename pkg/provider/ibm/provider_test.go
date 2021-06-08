@@ -19,14 +19,17 @@ import (
 	"strings"
 	"testing"
 
+	utilpointer "k8s.io/utils/pointer"
+
+	"github.com/IBM/go-sdk-core/v5/core"
 	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
-	fakesm "github.com/external-secrets/external-secrets/pkg/provider/gcp/secretmanager/fake"
+	fakesm "github.com/external-secrets/external-secrets/pkg/provider/ibm/fake"
 	"github.com/google/go-cmp/cmp"
 )
 
 type secretManagerTestCase struct {
-	mockClient     *fakesm.MockSMClient
+	mockClient     *fakesm.IBMMockClient
 	apiInput       *sm.GetSecretOptions
 	apiOutput      *sm.GetSecret
 	ref            *esv1alpha1.ExternalSecretDataRemoteRef
@@ -41,7 +44,7 @@ type secretManagerTestCase struct {
 func makeValidSecretManagerTestCase() *secretManagerTestCase {
 
 	smtc := secretManagerTestCase{
-		mockClient:     &fakesm.MockSMClient{},
+		mockClient:     &fakesm.IBMMockClient{},
 		apiInput:       makeValidAPIInput(),
 		ref:            makeValidRef(),
 		apiOutput:      makeValidAPIOutput(),
@@ -51,7 +54,6 @@ func makeValidSecretManagerTestCase() *secretManagerTestCase {
 		expectedSecret: "",
 		expectedData:   map[string]string{},
 	}
-	smtc.mockClient.NilClose()
 	smtc.mockClient.WithValue(context.Background(), smtc.apiInput, smtc.apiOutput, smtc.apiErr)
 	return &smtc
 }
@@ -63,18 +65,15 @@ func makeValidRef() *esv1alpha1.ExternalSecretDataRemoteRef {
 	}
 }
 
-func makeValidAPIInput() *secretmanagerpb.AccessSecretVersionRequest {
-	return &secretmanagerpb.AccessSecretVersionRequest{
-		Name: "projects/default/secrets//baz/versions/default",
+func makeValidAPIInput() *sm.GetSecretOptions {
+	return &sm.GetSecretOptions{
+		SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
+		ID:         utilpointer.StringPtr("test-secret"),
 	}
 }
 
-func makeValidAPIOutput() *secretmanagerpb.AccessSecretVersionResponse {
-	return &secretmanagerpb.AccessSecretVersionResponse{
-		Payload: &secretmanagerpb.SecretPayload{
-			Data: []byte{},
-		},
-	}
+func makeValidAPIOutput() *sm.GetSecret {
+	return &sm.GetSecret{}
 }
 
 func makeValidSecretManagerTestCaseCustom(tweaks ...func(smtc *secretManagerTestCase)) *secretManagerTestCase {

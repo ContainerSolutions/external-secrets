@@ -9,7 +9,8 @@ import (
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	"github.com/external-secrets/external-secrets/pkg/provider"
 	"github.com/external-secrets/external-secrets/pkg/provider/schema"
-	"github.com/go-logr/logr"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -20,6 +21,7 @@ const (
 
 	errUnableCreateSession                     = "unable to create session: %w"
 	errIBMClient                               = "cannot setup new ibm client: %w"
+	errIBMCredSecretName                       = "invalid IBM SecretStore resource: missing IBM APIKey"
 	errUnknownProviderService                  = "unknown IBM Provider Service: %s"
 	errInvalidClusterStoreMissingAKIDNamespace = "invalid ClusterSecretStore: missing IBM AccessKeyID Namespace"
 	errInvalidClusterStoreMissingSAKNamespace  = "invalid ClusterSecretStore: missing IBM SecretAccessKey Namespace"
@@ -43,22 +45,50 @@ type providerIBM struct {
 }
 
 type client struct {
-	kube      kclient.Client
-	store     *esv1alpha1.IBMProvider
-	log       logr.Logger
-	namespace string
-	storeKind string
+	kube        kclient.Client
+	store       *esv1alpha1.IBMProvider
+	namespace   string
+	storeKind   string
+	credentials []byte
+}
+
+func (c *client) setAuth(ctx context.Context) error {
+	credentialsSecret := &corev1.Secret{}
+	credentialsSecretName := c.store.Auth.SecretRef.SecretApiKey.Name
+	if credentialsSecretName == "" {
+		return fmt.Errorf(errIBMCredSecretName)
+	}
+	objectKey := types.NamespacedName{
+		Name:      credentialsSecretName,
+		Namespace: c.namespace,
+	}
+
+	// only ClusterStore is allowed to set namespace (and then it's required)
+	if c.storeKind == esv1alpha1.ClusterSecretStoreKind {
+		if c.store.Auth.SecretRef.SecretApiKey.Namespace == nil {
+			return fmt.Errorf(errInvalidClusterStoreMissingSAKNamespace)
+		}
+		objectKey.Namespace = *c.store.Auth.SecretRef.SecretApiKey.Namespace
+	}
+
+	err := c.kube.Get(ctx, objectKey, credentialsSecret)
+	if err != nil {
+		return fmt.Errorf(errFetchSAKSecret, err)
+	}
+
+	c.credentials = credentialsSecret.Data[c.store.Auth.SecretRef.SecretApiKey.Key]
+	if (c.credentials == nil) || (len(c.credentials) == 0) {
+		return fmt.Errorf(errMissingSAK)
+	}
+	return nil
 }
 
 func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
-	fmt.Println("ACTUALY GETSCRET")
-	//	if (ibm.client == nil) || ibm.
 	response, _, err := ibm.IBMClient.GetSecret(
 		&sm.GetSecretOptions{
 			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
 			ID:         &ref.Key,
 		})
-
 	if err != nil {
 		return nil, fmt.Errorf("GetSecret error: %w", err)
 	}
@@ -66,9 +96,8 @@ func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSe
 	secret := response.Resources[0].(*sm.SecretResource)
 	secretData := secret.SecretData.(map[string]interface{})
 	arbitrarySecretPayload := secretData["payload"].(string)
-	fmt.Println(arbitrarySecretPayload)
 
-	return nil, nil
+	return []byte(arbitrarySecretPayload), nil
 }
 
 func (ibm *providerIBM) GetSecretMap(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) (map[string][]byte, error) {
@@ -79,12 +108,24 @@ func (p *providerIBM) NewClient(ctx context.Context, store esv1alpha1.GenericSto
 	storeSpec := store.GetSpec()
 	ibmSpec := storeSpec.Provider.IBM
 
+	iStore := &client{
+		kube:      kube,
+		store:     ibmSpec,
+		namespace: namespace,
+		storeKind: store.GetObjectKind().GroupVersionKind().Kind,
+	}
+
+	if err := iStore.setAuth(ctx); err != nil {
+		return nil, err
+	}
+
 	secretsManager, err := sm.NewSecretsManagerV1(&sm.SecretsManagerV1Options{
 		URL: *storeSpec.Provider.IBM.ServiceURL,
 		Authenticator: &core.IamAuthenticator{
-			ApiKey: ibmSpec.Auth.SecretRef.SecretApiKey.Key,
+			ApiKey: string(iStore.credentials),
 		},
 	})
+
 	if err != nil {
 		return nil, fmt.Errorf(errIBMClient, err)
 	}

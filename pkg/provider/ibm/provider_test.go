@@ -54,18 +54,22 @@ func makeValidSecretManagerTestCase() *secretManagerTestCase {
 		expectedData:   map[string]string{},
 	}
 	fmt.Println("HERERERERERERERE")
-	smtc.mockClient.WithValue(smtc.apiInput, smtc.apiOutput, smtc.apiErr)
 	fmt.Println(smtc.apiInput.ID)
 	fmt.Println(smtc.apiInput.Headers)
 	fmt.Println(smtc.apiInput.SecretType)
 	fmt.Println(smtc.apiOutput.Resources)
+	secret := smtc.apiOutput.Resources[0].(*sm.SecretResource)
+	secretData := secret.SecretData.(map[string]interface{})
+	arbitrarySecretPayload := secretData["payload"].(string)
+	fmt.Println(arbitrarySecretPayload)
 	fmt.Println("AFFTTERRRRRRRRRRR")
+	smtc.mockClient.WithValue(smtc.apiInput, smtc.apiOutput, smtc.apiErr)
 	return &smtc
 }
 
 func makeValidRef() *esv1alpha1.ExternalSecretDataRemoteRef {
 	return &esv1alpha1.ExternalSecretDataRemoteRef{
-		Key:     "/baz",
+		Key:     "test-secret",
 		Version: "default",
 	}
 }
@@ -78,12 +82,18 @@ func makeValidAPIInput() *sm.GetSecretOptions {
 }
 
 func makeValidAPIOutput() *sm.GetSecret {
+	secretData := make(map[string]interface{})
+	secretData["payload"] = "testysecretdata"
+
+	fmt.Println(secretData["payload"])
+
 	return &sm.GetSecret{
 		Resources: []sm.SecretResourceIntf{
 			&sm.SecretResource{
 				Type:       utilpointer.StringPtr("testytype"),
 				Name:       utilpointer.StringPtr("testyname"),
-				SecretData: utilpointer.StringPtr("testysecretdata")},
+				SecretData: secretData,
+			},
 		},
 	}
 }
@@ -147,6 +157,8 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 	for k, v := range successCases {
 		sm.IBMClient = v.mockClient
 		out, err := sm.GetSecret(context.Background(), *v.ref)
+		fmt.Println("AQUIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
+		fmt.Println(out)
 		if !ErrorContains(err, v.expectError) {
 			t.Errorf("[%d] unexpected error: %s, expected: '%s'", k, err.Error(), v.expectError)
 		}

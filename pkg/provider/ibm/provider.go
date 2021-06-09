@@ -93,9 +93,13 @@ func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSe
 		return nil, fmt.Errorf("GetSecret error: %w", err)
 	}
 
+	fmt.Println("before secret assignement")
 	secret := response.Resources[0].(*sm.SecretResource)
+	fmt.Println("before secret data")
 	secretData := secret.SecretData.(map[string]interface{})
+	fmt.Println("before arbi")
 	arbitrarySecretPayload := secretData["payload"].(string)
+	fmt.Println("after all assignments")
 
 	return []byte(arbitrarySecretPayload), nil
 }

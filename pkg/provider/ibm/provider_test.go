@@ -53,16 +53,6 @@ func makeValidSecretManagerTestCase() *secretManagerTestCase {
 		expectedSecret: "testysecretdata",
 		expectedData:   map[string]string{},
 	}
-	fmt.Println("HERERERERERERERE")
-	fmt.Println(smtc.apiInput.ID)
-	fmt.Println(smtc.apiInput.Headers)
-	fmt.Println(smtc.apiInput.SecretType)
-	fmt.Println(smtc.apiOutput.Resources)
-	secret := smtc.apiOutput.Resources[0].(*sm.SecretResource)
-	secretData := secret.SecretData.(map[string]interface{})
-	arbitrarySecretPayload := secretData["payload"].(string)
-	fmt.Println(arbitrarySecretPayload)
-	fmt.Println("AFFTTERRRRRRRRRRR")
 	smtc.mockClient.WithValue(smtc.apiInput, smtc.apiOutput, smtc.apiErr)
 	return &smtc
 }
@@ -157,8 +147,6 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 	for k, v := range successCases {
 		sm.IBMClient = v.mockClient
 		out, err := sm.GetSecret(context.Background(), *v.ref)
-		fmt.Println("AQUIIIIIIIIIIIIIIIIIIIIIIIIIIIII")
-		fmt.Println(out)
 		if !ErrorContains(err, v.expectError) {
 			t.Errorf("[%d] unexpected error: %s, expected: '%s'", k, err.Error(), v.expectError)
 		}

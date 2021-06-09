@@ -14,6 +14,10 @@ limitations under the License.
 
 package v1alpha1
 
+import (
+	esmeta "github.com/external-secrets/external-secrets/apis/meta/v1"
+)
+
 // Configures an store to sync secrets using a IBM Cloud Secrets Manager
 // backend.
 type IBMProvider struct {
@@ -24,8 +28,12 @@ type IBMProvider struct {
 	ServiceURL *string `json:"serviceUrl,omitempty"`
 }
 
-// IBMAuth is the configuration used to authenticate with the IBM secrets manager.
 type IBMAuth struct {
-	// APIKey is used to authenticate to the secrets manager
-	APIKey *string `json:"apiKey,omitempty"`
+	SecretRef IBMAuthSecretRef `json:"secretRef"`
+}
+
+type IBMAuthSecretRef struct {
+	// The SecretAccessKey is used for authentication
+	// +optional
+	SecretApiKey esmeta.SecretKeySelector `json:"secretApiKeySecretRef,omitempty"`
 }

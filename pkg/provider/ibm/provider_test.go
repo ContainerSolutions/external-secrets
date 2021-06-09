@@ -55,6 +55,10 @@ func makeValidSecretManagerTestCase() *secretManagerTestCase {
 	}
 	fmt.Println("HERERERERERERERE")
 	smtc.mockClient.WithValue(smtc.apiInput, smtc.apiOutput, smtc.apiErr)
+	fmt.Println(smtc.apiInput.ID)
+	fmt.Println(smtc.apiInput.Headers)
+	fmt.Println(smtc.apiInput.SecretType)
+	fmt.Println(smtc.apiOutput.Resources)
 	fmt.Println("AFFTTERRRRRRRRRRR")
 	return &smtc
 }
@@ -74,7 +78,14 @@ func makeValidAPIInput() *sm.GetSecretOptions {
 }
 
 func makeValidAPIOutput() *sm.GetSecret {
-	return &sm.GetSecret{}
+	return &sm.GetSecret{
+		Resources: []sm.SecretResourceIntf{
+			&sm.SecretResource{
+				Type:       utilpointer.StringPtr("testytype"),
+				Name:       utilpointer.StringPtr("testyname"),
+				SecretData: utilpointer.StringPtr("testysecretdata"),
+		},
+	}
 }
 
 func makeValidSecretManagerTestCaseCustom(tweaks ...func(smtc *secretManagerTestCase)) *secretManagerTestCase {

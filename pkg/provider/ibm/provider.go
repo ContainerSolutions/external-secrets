@@ -10,6 +10,8 @@ import (
 	"github.com/external-secrets/external-secrets/pkg/provider"
 	"github.com/go-logr/logr"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
+
+	utilpointer "k8s.io/utils/pointer"
 )
 
 const (
@@ -52,6 +54,19 @@ type client struct {
 func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
 	fmt.Println("ACTUALY GETSCRET")
 	//	if (ibm.client == nil) || ibm.
+	response, _, err := ibm.IBMClient.GetSecret(
+		&sm.GetSecretOptions{
+			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
+			ID:         utilpointer.StringPtr("dev-example"),
+		})
+
+	if err != nil {
+		return nil, fmt.Errorf("GetSecret error:", err)
+	}
+
+	secret := response.Resources[0].(*sm.SecretResource)
+	fmt.Printf("%+x",secret)
+
 	return nil, nil
 }
 
@@ -66,7 +81,7 @@ func (p *providerIBM) NewClient(ctx context.Context, store esv1alpha1.GenericSto
 	secretsManager, err := sm.NewSecretsManagerV1(&sm.SecretsManagerV1Options{
 		URL: *ibmSpec.ServiceURL,
 		Authenticator: &core.IamAuthenticator{
-			ApiKey: *ibmSpec.Auth.APIKey,
+			ApiKey: ibmSpec.Auth.SecretRef.SecretApiKey.Key,
 		},
 	})
 	if err != nil {

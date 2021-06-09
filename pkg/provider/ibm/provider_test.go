@@ -83,7 +83,7 @@ func makeValidAPIOutput() *sm.GetSecret {
 			&sm.SecretResource{
 				Type:       utilpointer.StringPtr("testytype"),
 				Name:       utilpointer.StringPtr("testyname"),
-				SecretData: utilpointer.StringPtr("testysecretdata"),
+				SecretData: utilpointer.StringPtr("testysecretdata")},
 		},
 	}
 }

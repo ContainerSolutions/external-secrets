@@ -8,10 +8,9 @@ import (
 	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	"github.com/external-secrets/external-secrets/pkg/provider"
+	"github.com/external-secrets/external-secrets/pkg/provider/schema"
 	"github.com/go-logr/logr"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
-
-	utilpointer "k8s.io/utils/pointer"
 )
 
 const (
@@ -57,7 +56,7 @@ func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSe
 	response, _, err := ibm.IBMClient.GetSecret(
 		&sm.GetSecretOptions{
 			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
-			ID:         utilpointer.StringPtr("dev-example"),
+			ID:         &ref.Key,
 		})
 
 	if err != nil {
@@ -65,7 +64,9 @@ func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSe
 	}
 
 	secret := response.Resources[0].(*sm.SecretResource)
-	fmt.Printf("%+x",secret)
+	secretData := secret.SecretData.(map[string]interface{})
+	arbitrarySecretPayload := secretData["payload"].(string)
+	fmt.Println(arbitrarySecretPayload)
 
 	return nil, nil
 }
@@ -79,7 +80,7 @@ func (p *providerIBM) NewClient(ctx context.Context, store esv1alpha1.GenericSto
 	ibmSpec := storeSpec.Provider.IBM
 
 	secretsManager, err := sm.NewSecretsManagerV1(&sm.SecretsManagerV1Options{
-		URL: *ibmSpec.ServiceURL,
+		URL: *storeSpec.Provider.IBM.ServiceURL,
 		Authenticator: &core.IamAuthenticator{
 			ApiKey: ibmSpec.Auth.SecretRef.SecretApiKey.Key,
 		},
@@ -88,15 +89,12 @@ func (p *providerIBM) NewClient(ctx context.Context, store esv1alpha1.GenericSto
 		return nil, fmt.Errorf(errIBMClient, err)
 	}
 
-	// iStore := &client{
-	// 	kube:      kube,
-	// 	store:     ibmSpec,
-	// 	log:       ctrl.Log.WithName("provider").WithName("ibm"),
-	// 	namespace: namespace,
-	// 	storeKind: store.GetObjectKind().GroupVersionKind().Kind,
-	// }
-
-	// return iStore, nil
 	p.IBMClient = secretsManager
 	return p, nil
+}
+
+func init() {
+	schema.Register(&providerIBM{}, &esv1alpha1.SecretStoreProvider{
+		IBM: &esv1alpha1.IBMProvider{},
+	})
 }

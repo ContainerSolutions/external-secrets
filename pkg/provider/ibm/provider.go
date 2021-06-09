@@ -60,7 +60,7 @@ func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSe
 		})
 
 	if err != nil {
-		return nil, fmt.Errorf("GetSecret error:", err)
+		return nil, fmt.Errorf("GetSecret error: %w", err)
 	}
 
 	secret := response.Resources[0].(*sm.SecretResource)

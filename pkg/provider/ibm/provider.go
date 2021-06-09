@@ -93,6 +93,7 @@ func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSe
 		return nil, fmt.Errorf("GetSecret error: %w", err)
 	}
 
+	fmt.Printf("%+v", response.Resources[0])
 	fmt.Println("before secret assignement")
 	secret := response.Resources[0].(*sm.SecretResource)
 	fmt.Println("before secret data")

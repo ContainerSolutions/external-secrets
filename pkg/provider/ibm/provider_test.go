@@ -50,7 +50,7 @@ func makeValidSecretManagerTestCase() *secretManagerTestCase {
 		serviceURL:     nil,
 		apiErr:         nil,
 		expectError:    "",
-		expectedSecret: "",
+		expectedSecret: "testysecretdata",
 		expectedData:   map[string]string{},
 	}
 	fmt.Println("HERERERERERERERE")
@@ -85,8 +85,6 @@ func makeValidAPIOutput() *sm.GetSecret {
 	secretData := make(map[string]interface{})
 	secretData["payload"] = "testysecretdata"
 
-	fmt.Println(secretData["payload"])
-
 	return &sm.GetSecret{
 		Resources: []sm.SecretResourceIntf{
 			&sm.SecretResource{
@@ -117,6 +115,8 @@ var setAPIErr = func(smtc *secretManagerTestCase) {
 // test the sm<->gcp interface
 // make sure correct values are passed and errors are handled accordingly.
 func TestIBMSecretManagerGetSecret(t *testing.T) {
+	secretData := make(map[string]interface{})
+	secretData["payload"] = "testysecretdata"
 	// good case: default version is set
 	// key is passed in, output is sent back
 	setSecretString := func(smtc *secretManagerTestCase) {
@@ -124,7 +124,7 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 			&sm.SecretResource{
 				Type:       utilpointer.StringPtr("testytype"),
 				Name:       utilpointer.StringPtr("testyname"),
-				SecretData: utilpointer.StringPtr("testysecretdata"),
+				SecretData: secretData,
 			}}
 		// resources[0] = &sm.SecretResource{
 		// 	Type:       utilpointer.StringPtr("testytype"),

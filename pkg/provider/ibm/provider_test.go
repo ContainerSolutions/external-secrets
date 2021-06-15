@@ -140,6 +140,7 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 		makeValidSecretManagerTestCase(),
 		makeValidSecretManagerTestCaseCustom(setSecretString),
 		makeValidSecretManagerTestCaseCustom(setCustomKey),
+		makeValidSecretManagerTestCaseCustom(setAPIErr),
 	}
 
 	sm := providerIBM{}

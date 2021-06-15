@@ -124,14 +124,16 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 
 	// good case: custom version set
 	setCustomKey := func(smtc *secretManagerTestCase) {
-		
+		resources := []sm.SecretResourceIntf{
+			&sm.SecretResource{
+				Type:       utilpointer.StringPtr("testytype"),
+				Name:       utilpointer.StringPtr("testyname"),
+				SecretData: secretData,
+			}}
 		smtc.ref.Key = "testyname"
-		smtc.apiInput = &sm.GetSecretOptions{
-			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
-			ID:         &ref.Key,
-		})
-		smtc.apiOutput
-		smtc.expectedSecret = "FOOBA!"
+		smtc.apiInput.ID = utilpointer.StringPtr("testyname")
+		smtc.apiOutput.Resources = resources
+		smtc.expectedSecret = secretValue
 	}
 
 	successCases := []*secretManagerTestCase{

@@ -106,7 +106,8 @@ var setAPIErr = func(smtc *secretManagerTestCase) {
 // make sure correct values are passed and errors are handled accordingly.
 func TestIBMSecretManagerGetSecret(t *testing.T) {
 	secretData := make(map[string]interface{})
-	secretData["payload"] = "testysecretdata"
+	secretValue := "changedvalue"
+	secretData["payload"] = secretValue
 	// good case: default version is set
 	// key is passed in, output is sent back
 	setSecretString := func(smtc *secretManagerTestCase) {
@@ -116,30 +117,23 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 				Name:       utilpointer.StringPtr("testyname"),
 				SecretData: secretData,
 			}}
-		// resources[0] = &sm.SecretResource{
-		// 	Type:       utilpointer.StringPtr("testytype"),
-		// 	Name:       utilpointer.StringPtr("testyname"),
-		// 	SecretData: utilpointer.StringPtr("testysecretdata"),
-		// }
 
 		smtc.apiOutput.Resources = resources
-		smtc.expectedSecret = "testysecretdata"
+		smtc.expectedSecret = secretValue
 	}
 
-	/*
-		// good case: custom version set
-		setCustomVersion := func(smtc *secretManagerTestCase) {
-			smtc.ref.Version = "1234"
-			smtc.apiInput.Name = "projects/default/secrets//baz/versions/1234"
-			smtc.apiOutput.Payload.Data = []byte("FOOBA!")
-			smtc.expectedSecret = "FOOBA!"
-		}
+	// good case: custom version set
+	setCustomVersion := func(smtc *secretManagerTestCase) {
+		smtc.ref.Version = "1234"
+		smtc.apiInput.Name = "projects/default/secrets//baz/versions/1234"
+		smtc.apiOutput.Payload.Data = []byte("FOOBA!")
+		smtc.expectedSecret = "FOOBA!"
+	}
 
-	*/
 	successCases := []*secretManagerTestCase{
 		makeValidSecretManagerTestCase(),
 		makeValidSecretManagerTestCaseCustom(setSecretString),
-		//	makeValidSecretManagerTestCaseCustom(setAPIErr),
+		makeValidSecretManagerTestCaseCustom(setCustomVersion),
 	}
 
 	sm := providerIBM{}

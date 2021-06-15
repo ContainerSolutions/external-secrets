@@ -123,17 +123,21 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 	}
 
 	// good case: custom version set
-	setCustomVersion := func(smtc *secretManagerTestCase) {
-		smtc.ref.Version = "1234"
-		smtc.apiInput.Name = "projects/default/secrets//baz/versions/1234"
-		smtc.apiOutput.Payload.Data = []byte("FOOBA!")
+	setCustomKey := func(smtc *secretManagerTestCase) {
+		
+		smtc.ref.Key = "testyname"
+		smtc.apiInput = &sm.GetSecretOptions{
+			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
+			ID:         &ref.Key,
+		})
+		smtc.apiOutput
 		smtc.expectedSecret = "FOOBA!"
 	}
 
 	successCases := []*secretManagerTestCase{
 		makeValidSecretManagerTestCase(),
 		makeValidSecretManagerTestCaseCustom(setSecretString),
-		makeValidSecretManagerTestCaseCustom(setCustomVersion),
+		makeValidSecretManagerTestCaseCustom(setCustomKey),
 	}
 
 	sm := providerIBM{}

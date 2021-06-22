@@ -32,12 +32,17 @@ func (mc *IBMMockClient) GetSecret(getSecretOptions *sm.GetSecretOptions) (resul
 }
 
 func (mc *IBMMockClient) WithValue(input *sm.GetSecretOptions, output *sm.GetSecret, err error) {
-	mc.getSecret = func(paramReq *sm.GetSecretOptions) (*sm.GetSecret, *core.DetailedResponse, error) {
-		// type secretmanagerpb.AccessSecretVersionRequest contains unexported fields
-		// use cmpopts.IgnoreUnexported to ignore all the unexported fields in the cmp.
-		if !cmp.Equal(paramReq, input, cmpopts.IgnoreUnexported(sm.GetSecret{})) {
-			return nil, nil, fmt.Errorf("unexpected test argument")
+	fmt.Println("I'm inside WithValue")
+	if(mc != nil) {
+		mc.getSecret = func(paramReq *sm.GetSecretOptions) (*sm.GetSecret, *core.DetailedResponse, error) {
+			// type secretmanagerpb.AccessSecretVersionRequest contains unexported fields
+			// use cmpopts.IgnoreUnexported to ignore all the unexported fields in the cmp.
+			if !cmp.Equal(paramReq, input, cmpopts.IgnoreUnexported(sm.GetSecret{})) {
+				return nil, nil, fmt.Errorf("unexpected test argument")
+			}
+			return output, nil, err
 		}
-		return output, nil, err
 	}
+
+	fmt.Println("After assignment")
 }

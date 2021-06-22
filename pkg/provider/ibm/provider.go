@@ -22,7 +22,7 @@ const (
 	errUnableCreateSession                     = "unable to create session: %w"
 	errIBMClient                               = "cannot setup new ibm client: %w"
 	errIBMCredSecretName                       = "invalid IBM SecretStore resource: missing IBM APIKey"
-	errUninitalizedIBMProvider                 = "provider IBM is not initialized"
+	ErrUninitalizedIBMProvider                 = "provider IBM is not initialized"
 	errUnknownProviderService                  = "unknown IBM Provider Service: %s"
 	errInvalidClusterStoreMissingAKIDNamespace = "invalid ClusterSecretStore: missing IBM AccessKeyID Namespace"
 	errInvalidClusterStoreMissingSAKNamespace  = "invalid ClusterSecretStore: missing IBM SecretAccessKey Namespace"
@@ -86,7 +86,7 @@ func (c *client) setAuth(ctx context.Context) error {
 
 func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
 	if ibm.IBMClient == nil {
-		return nil, fmt.Errorf(errUninitalizedIBMProvider)
+		return nil, fmt.Errorf(ErrUninitalizedIBMProvider)
 	}
 	response, _, err := ibm.IBMClient.GetSecret(
 		&sm.GetSecretOptions{

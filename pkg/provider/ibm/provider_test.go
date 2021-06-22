@@ -103,11 +103,8 @@ var setAPIErr = func(smtc *secretManagerTestCase) {
 }
 
 var setNilMockClient = func(smtc *secretManagerTestCase) {
-	fmt.Println("do we get here?")
 	smtc.mockClient = nil
-	fmt.Println("do we get here?2")
 	smtc.expectError = ErrUninitalizedIBMProvider
-	fmt.Println("do we get here?3")
 }
 
 // test the sm<->gcp interface
@@ -153,13 +150,9 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 	}
 
 	sm := providerIBM{}
-	fmt.Printf("xxxxxx: %+v", sm)
 	for k, v := range successCases {
-		fmt.Println("ere")
 		sm.IBMClient = v.mockClient
-		fmt.Printf("The mock client is : %+v", v.mockClient)
 		out, err := sm.GetSecret(context.Background(), *v.ref)
-		fmt.Println(err)
 		if !ErrorContains(err, v.expectError) {
 			t.Errorf("[%d] unexpected error: %s, expected: '%s'", k, err.Error(), v.expectError)
 		}

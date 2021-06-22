@@ -3,6 +3,7 @@ package ibm
 import (
 	"context"
 	"fmt"
+	"reflect"
 
 	"github.com/IBM/go-sdk-core/v5/core"
 	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
@@ -85,19 +86,15 @@ func (c *client) setAuth(ctx context.Context) error {
 }
 
 func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
-	fmt.Printf("The ibm client is: %+v", ibm)
-	if ibm.IBMClient == nil {
-		fmt.Println("Client check")
+	if isNil(ibm.IBMClient) {
 		return nil, fmt.Errorf(ErrUninitalizedIBMProvider)
 	}
-	fmt.Println("before response")
 	response, _, err := ibm.IBMClient.GetSecret(
 		&sm.GetSecretOptions{
 			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
 			ID:         &ref.Key,
 		})
 
-	fmt.Println("after response")
 	if err != nil {
 		return nil, fmt.Errorf("GetSecret error: %w", err)
 	}
@@ -106,6 +103,10 @@ func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSe
 	secretData := secret.SecretData.(map[string]interface{})
 	arbitrarySecretPayload := secretData["payload"].(string)
 	return []byte(arbitrarySecretPayload), nil
+}
+
+func isNil(i interface{}) bool {
+	return i == nil || reflect.ValueOf(i).IsNil()
 }
 
 func (ibm *providerIBM) GetSecretMap(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) (map[string][]byte, error) {

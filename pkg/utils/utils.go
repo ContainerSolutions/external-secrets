@@ -14,10 +14,17 @@ limitations under the License.
 
 package utils
 
+import "reflect"
+
 // Merge maps.
 func Merge(src, dst map[string][]byte) map[string][]byte {
 	for k, v := range dst {
 		src[k] = v
 	}
 	return src
+}
+
+// IsNil checks if an Interface is nil
+func IsNil(i interface{}) bool {
+	return i == nil || reflect.ValueOf(i).IsNil()
 }

@@ -16,6 +16,7 @@ package ibm
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -25,7 +26,6 @@ import (
 	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	fakesm "github.com/external-secrets/external-secrets/pkg/provider/ibm/fake"
-	"github.com/google/go-cmp/cmp"
 )
 
 type secretManagerTestCase struct {
@@ -38,7 +38,7 @@ type secretManagerTestCase struct {
 	expectError    string
 	expectedSecret string
 	// for testing secretmap
-	expectedData map[string]string
+	expectedData map[string][]byte
 }
 
 func makeValidSecretManagerTestCase() *secretManagerTestCase {
@@ -52,7 +52,7 @@ func makeValidSecretManagerTestCase() *secretManagerTestCase {
 		apiErr:         nil,
 		expectError:    "",
 		expectedSecret: "",
-		expectedData:   map[string]string{},
+		expectedData:   map[string][]byte{},
 	}
 	smtc.mockClient.WithValue(smtc.apiInput, smtc.apiOutput, smtc.apiErr)
 	return &smtc
@@ -179,7 +179,7 @@ func TestGetSecretMap(t *testing.T) {
 			}}
 
 		smtc.apiOutput.Resources = resources
-		smtc.expectedData["foo"] = "bar"
+		smtc.expectedData["foo"] = []byte("bar")
 	}
 
 	//bad case: invalid json
@@ -201,7 +201,7 @@ func TestGetSecretMap(t *testing.T) {
 		}
 		fmt.Println(v.expectedData)
 		fmt.Println(out)
-		if cmp.Equal(out, v.expectedData) {
+		if !reflect.DeepEqual(out, v.expectedData) {
 			t.Errorf("[%d] unexpected secret data: expected %#v, got %#v", k, v.expectedData, out)
 		}
 	}

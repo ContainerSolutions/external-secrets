@@ -111,17 +111,11 @@ func TestSecretManagerGetSecret(t *testing.T) {
 		smtc.expectedSecret = "FOOBA!"
 	}
 
-	var setNilMockClient = func(smtc *secretManagerTestCase) {
-		smtc.mockClient = nil
-		smtc.expectError = ErrUninitalizedGCPProvider
-	}
-
 	successCases := []*secretManagerTestCase{
 		makeValidSecretManagerTestCase(),
 		makeValidSecretManagerTestCaseCustom(setSecretString),
 		makeValidSecretManagerTestCaseCustom(setCustomVersion),
 		makeValidSecretManagerTestCaseCustom(setAPIErr),
-		makeValidSecretManagerTestCaseCustom(setNilMockClient),
 	}
 
 	sm := ProviderGCP{}

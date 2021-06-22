@@ -30,7 +30,6 @@ import (
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	"github.com/external-secrets/external-secrets/pkg/provider"
 	"github.com/external-secrets/external-secrets/pkg/provider/schema"
-	"github.com/external-secrets/external-secrets/pkg/utils"
 )
 
 const (
@@ -138,7 +137,7 @@ func (sm *ProviderGCP) NewClient(ctx context.Context, store esv1alpha1.GenericSt
 
 // GetSecret returns a single secret from the provider.
 func (sm *ProviderGCP) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
-	if utils.IsNil(sm.SecretManagerClient) || sm.projectID == "" {
+	if sm.SecretManagerClient == nil || sm.projectID == "" {
 		return nil, fmt.Errorf(errUninitalizedGCPProvider)
 	}
 

@@ -25,6 +25,7 @@ import (
 	sm "github.com/IBM/secrets-manager-go-sdk/secretsmanagerv1"
 	esv1alpha1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1alpha1"
 	fakesm "github.com/external-secrets/external-secrets/pkg/provider/ibm/fake"
+	"github.com/google/go-cmp/cmp"
 )
 
 type secretManagerTestCase struct {
@@ -163,41 +164,48 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 
 }
 
-/*
 func TestGetSecretMap(t *testing.T) {
+	secretData := make(map[string]interface{})
+	secretValue := `{"foo":"bar"}`
+	secretData["payload"] = secretValue
 
-	// good case: default version & deserialization
+	//good case: default version & deserialization
 	setDeserialization := func(smtc *secretManagerTestCase) {
-		smtc.apiOutput.Payload.Data = []byte(`{"foo":"bar"}`)
+		resources := []sm.SecretResourceIntf{
+			&sm.SecretResource{
+				Type:       utilpointer.StringPtr("testytype"),
+				Name:       utilpointer.StringPtr("testyname"),
+				SecretData: secretData,
+			}}
+
+		smtc.apiOutput.Resources = resources
 		smtc.expectedData["foo"] = "bar"
 	}
 
-	// bad case: invalid json
-	setInvalidJSON := func(smtc *secretManagerTestCase) {
-		smtc.apiOutput.Payload.Data = []byte(`-----------------`)
-		smtc.expectError = "unable to unmarshal secret"
-	}
+	//bad case: invalid json
+	// setInvalidJSON := func(smtc *secretManagerTestCase) {
+	// 	smtc.apiOutput.Payload.Data = []byte(`-----------------`)
+	// 	smtc.expectError = "unable to unmarshal secret"
+	// }
 
 	successCases := []*secretManagerTestCase{
 		makeValidSecretManagerTestCaseCustom(setDeserialization),
-		makeValidSecretManagerTestCaseCustom(setAPIErr),
-		makeValidSecretManagerTestCaseCustom(setInvalidJSON),
 	}
 
-	sm := ProviderGCP{}
+	sm := providerIBM{}
 	for k, v := range successCases {
-		sm.projectID = v.projectID
-		sm.SecretManagerClient = v.mockClient
+		sm.IBMClient = v.mockClient
 		out, err := sm.GetSecretMap(context.Background(), *v.ref)
 		if !ErrorContains(err, v.expectError) {
 			t.Errorf("[%d] unexpected error: %s, expected: '%s'", k, err.Error(), v.expectError)
 		}
+		fmt.Println(v.expectedData)
+		fmt.Println(out)
 		if cmp.Equal(out, v.expectedData) {
 			t.Errorf("[%d] unexpected secret data: expected %#v, got %#v", k, v.expectedData, out)
 		}
 	}
 }
-*/
 
 func ErrorContains(out error, want string) bool {
 	if out == nil {

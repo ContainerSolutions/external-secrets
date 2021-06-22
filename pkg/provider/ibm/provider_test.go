@@ -50,7 +50,7 @@ func makeValidSecretManagerTestCase() *secretManagerTestCase {
 		serviceURL:     nil,
 		apiErr:         nil,
 		expectError:    "",
-		expectedSecret: "testysecretdata",
+		expectedSecret: "",
 		expectedData:   map[string]string{},
 	}
 	smtc.mockClient.WithValue(smtc.apiInput, smtc.apiOutput, smtc.apiErr)
@@ -73,7 +73,7 @@ func makeValidAPIInput() *sm.GetSecretOptions {
 
 func makeValidAPIOutput() *sm.GetSecret {
 	secretData := make(map[string]interface{})
-	secretData["payload"] = "testysecretdata"
+	secretData["payload"] = ""
 
 	return &sm.GetSecret{
 		Resources: []sm.SecretResourceIntf{
@@ -99,12 +99,12 @@ func makeValidSecretManagerTestCaseCustom(tweaks ...func(smtc *secretManagerTest
 // bad case: set apiErr.
 var setAPIErr = func(smtc *secretManagerTestCase) {
 	smtc.apiErr = fmt.Errorf("oh no")
-	smtc.expectError = "oh no"
+	smtc.expectError = "GetSecret error: oh no"
 }
 
 var setNilMockClient = func(smtc *secretManagerTestCase) {
 	smtc.mockClient = nil
-	smtc.expectError= "error oh my!"
+	smtc.expectError = "error oh my!"
 }
 
 // test the sm<->gcp interface
@@ -145,7 +145,7 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 		makeValidSecretManagerTestCase(),
 		makeValidSecretManagerTestCaseCustom(setSecretString),
 		makeValidSecretManagerTestCaseCustom(setCustomKey),
-		// makeValidSecretManagerTestCaseCustom(setAPIErr),
+		makeValidSecretManagerTestCaseCustom(setAPIErr),
 		// makeValidSecretManagerTestCaseCustom(setNilMockClient),
 
 	}

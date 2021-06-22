@@ -85,14 +85,19 @@ func (c *client) setAuth(ctx context.Context) error {
 }
 
 func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
+	fmt.Printf("The ibm client is: %+v", ibm)
 	if ibm.IBMClient == nil {
+		fmt.Println("Client check")
 		return nil, fmt.Errorf(ErrUninitalizedIBMProvider)
 	}
+	fmt.Println("before response")
 	response, _, err := ibm.IBMClient.GetSecret(
 		&sm.GetSecretOptions{
 			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
 			ID:         &ref.Key,
 		})
+
+	fmt.Println("after response")
 	if err != nil {
 		return nil, fmt.Errorf("GetSecret error: %w", err)
 	}

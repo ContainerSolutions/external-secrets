@@ -157,7 +157,7 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 	for k, v := range successCases {
 		fmt.Println("ere")
 		sm.IBMClient = v.mockClient
-		fmt.Println("print something")
+		fmt.Printf("The mock client is : %+v", v.mockClient)
 		out, err := sm.GetSecret(context.Background(), *v.ref)
 		fmt.Println(err)
 		if !ErrorContains(err, v.expectError) {

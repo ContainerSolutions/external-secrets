@@ -100,12 +100,12 @@ func makeValidSecretManagerTestCaseCustom(tweaks ...func(smtc *secretManagerTest
 // bad case: set apiErr.
 var setAPIErr = func(smtc *secretManagerTestCase) {
 	smtc.apiErr = fmt.Errorf("oh no")
-	smtc.expectError = "GetSecret error: oh no"
+	smtc.expectError = "oh no"
 }
 
 var setNilMockClient = func(smtc *secretManagerTestCase) {
 	smtc.mockClient = nil
-	smtc.expectError = ErrUninitalizedIBMProvider
+	smtc.expectError = errUninitalizedIBMProvider
 }
 
 // test the sm<->gcp interface
@@ -202,6 +202,8 @@ func TestGetSecretMap(t *testing.T) {
 	successCases := []*secretManagerTestCase{
 		makeValidSecretManagerTestCaseCustom(setDeserialization),
 		makeValidSecretManagerTestCaseCustom(setInvalidJSON),
+		makeValidSecretManagerTestCaseCustom(setNilMockClient),
+		makeValidSecretManagerTestCaseCustom(setAPIErr),
 	}
 
 	sm := providerIBM{}

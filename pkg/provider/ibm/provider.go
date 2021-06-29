@@ -24,7 +24,7 @@ const (
 	errUnableCreateSession                     = "unable to create session: %w"
 	errIBMClient                               = "cannot setup new ibm client: %w"
 	errIBMCredSecretName                       = "invalid IBM SecretStore resource: missing IBM APIKey"
-	ErrUninitalizedIBMProvider                 = "provider IBM is not initialized"
+	errUninitalizedIBMProvider                 = "provider IBM is not initialized"
 	errUnknownProviderService                  = "unknown IBM Provider Service: %s"
 	errInvalidClusterStoreMissingAKIDNamespace = "invalid ClusterSecretStore: missing IBM AccessKeyID Namespace"
 	errInvalidClusterStoreMissingSAKNamespace  = "invalid ClusterSecretStore: missing IBM SecretAccessKey Namespace"
@@ -89,7 +89,7 @@ func (c *client) setAuth(ctx context.Context) error {
 
 func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) ([]byte, error) {
 	if utils.IsNil(ibm.IBMClient) {
-		return nil, fmt.Errorf(ErrUninitalizedIBMProvider)
+		return nil, fmt.Errorf(errUninitalizedIBMProvider)
 	}
 	response, _, err := ibm.IBMClient.GetSecret(
 		&sm.GetSecretOptions{
@@ -98,7 +98,7 @@ func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSe
 		})
 
 	if err != nil {
-		return nil, fmt.Errorf("GetSecret error: %w", err)
+		return nil, err
 	}
 
 	secret := response.Resources[0].(*sm.SecretResource)
@@ -108,6 +108,9 @@ func (ibm *providerIBM) GetSecret(ctx context.Context, ref esv1alpha1.ExternalSe
 }
 
 func (ibm *providerIBM) GetSecretMap(ctx context.Context, ref esv1alpha1.ExternalSecretDataRemoteRef) (map[string][]byte, error) {
+	if utils.IsNil(ibm.IBMClient) {
+		return nil, fmt.Errorf(errUninitalizedIBMProvider)
+	}
 	response, _, err := ibm.IBMClient.GetSecret(
 		&sm.GetSecretOptions{
 			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),

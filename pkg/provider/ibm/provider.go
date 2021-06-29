@@ -113,6 +113,9 @@ func (ibm *providerIBM) GetSecretMap(ctx context.Context, ref esv1alpha1.Externa
 			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
 			ID:         &ref.Key,
 		})
+	if err != nil {
+		return nil, err
+	}
 
 	secret := response.Resources[0].(*sm.SecretResource)
 	secretData := secret.SecretData.(map[string]interface{})

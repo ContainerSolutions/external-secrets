@@ -169,27 +169,31 @@ func TestGetSecretMap(t *testing.T) {
 	secretValue := `{"foo":"bar"}`
 	secretData["payload"] = secretValue
 
-	resources := []sm.SecretResourceIntf{
-		&sm.SecretResource{
-			Type:       utilpointer.StringPtr("testytype"),
-			Name:       utilpointer.StringPtr("testyname"),
-			SecretData: secretData,
-		}}
-
 	//good case: default version & deserialization
 	setDeserialization := func(smtc *secretManagerTestCase) {
-
+		resources := []sm.SecretResourceIntf{
+			&sm.SecretResource{
+				Type:       utilpointer.StringPtr("testytype"),
+				Name:       utilpointer.StringPtr("testyname"),
+				SecretData: secretData,
+			}}
 		smtc.apiOutput.Resources = resources
 		smtc.expectedData["foo"] = []byte("bar")
 	}
 
 	//bad case: invalid json
 	setInvalidJSON := func(smtc *secretManagerTestCase) {
+		secretData["payload"] = `-----------------`
 
-		(resources[0](sm.SecretResource)).SecretData["payload"] = `-----------------`
+		resources := []sm.SecretResourceIntf{
+			&sm.SecretResource{
+				Type:       utilpointer.StringPtr("testytype"),
+				Name:       utilpointer.StringPtr("testyname"),
+				SecretData: secretData,
+			}}
 
 		smtc.apiOutput.Resources = resources
-		smtc.expectError = "unable to unmarshal secret"
+		smtc.expectError = "unexpected error: unable to unmarshal secret: invalid character '-' in numeric literal"
 	}
 
 	successCases := []*secretManagerTestCase{

@@ -186,8 +186,9 @@ func TestGetSecretMap(t *testing.T) {
 	//bad case: invalid json
 	setInvalidJSON := func(smtc *secretManagerTestCase) {
 
-		resources[0].
-			smtc.apiOutput.Payload.Data = []byte(`-----------------`)
+		(resources[0](sm.SecretResource)).SecretData["payload"] = `-----------------`
+
+		smtc.apiOutput.Resources = resources
 		smtc.expectError = "unable to unmarshal secret"
 	}
 

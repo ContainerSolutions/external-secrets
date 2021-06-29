@@ -165,24 +165,26 @@ func TestIBMSecretManagerGetSecret(t *testing.T) {
 }
 
 func TestGetSecretMap(t *testing.T) {
-	secretData := make(map[string]interface{})
-	secretValue := `{"foo":"bar"}`
-	secretData["payload"] = secretValue
 
 	//good case: default version & deserialization
-	// setDeserialization := func(smtc *secretManagerTestCase) {
-	// 	resources := []sm.SecretResourceIntf{
-	// 		&sm.SecretResource{
-	// 			Type:       utilpointer.StringPtr("testytype"),
-	// 			Name:       utilpointer.StringPtr("testyname"),
-	// 			SecretData: secretData,
-	// 		}}
-	// 	smtc.apiOutput.Resources = resources
-	// 	smtc.expectedData["foo"] = []byte("bar")
-	// }
+	setDeserialization := func(smtc *secretManagerTestCase) {
+		secretData := make(map[string]interface{})
+		secretValue := `{"foo":"bar"}`
+		secretData["payload"] = secretValue
+		resources := []sm.SecretResourceIntf{
+			&sm.SecretResource{
+				Type:       utilpointer.StringPtr("testytype"),
+				Name:       utilpointer.StringPtr("testyname"),
+				SecretData: secretData,
+			}}
+		smtc.apiOutput.Resources = resources
+		smtc.expectedData["foo"] = []byte("bar")
+	}
 
 	//bad case: invalid json
 	setInvalidJSON := func(smtc *secretManagerTestCase) {
+		secretData := make(map[string]interface{})
+
 		secretData["payload"] = `-----------------`
 
 		resources := []sm.SecretResourceIntf{
@@ -198,7 +200,7 @@ func TestGetSecretMap(t *testing.T) {
 	}
 
 	successCases := []*secretManagerTestCase{
-		//	makeValidSecretManagerTestCaseCustom(setDeserialization),
+		makeValidSecretManagerTestCaseCustom(setDeserialization),
 		makeValidSecretManagerTestCaseCustom(setInvalidJSON),
 	}
 
@@ -208,7 +210,8 @@ func TestGetSecretMap(t *testing.T) {
 		out, err := sm.GetSecretMap(context.Background(), *v.ref)
 		if !ErrorContains(err, v.expectError) {
 			t.Errorf("[%d] unexpected error: %s, expected: '%s'", k, err.Error(), v.expectError)
-		} else if !reflect.DeepEqual(out, v.expectedData) {
+		}
+		if err == nil && !reflect.DeepEqual(out, v.expectedData) {
 			t.Errorf("[%d] unexpected secret data: expected %#v, got %#v", k, v.expectedData, out)
 		}
 	}

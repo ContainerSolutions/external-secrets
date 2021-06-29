@@ -169,27 +169,31 @@ func TestGetSecretMap(t *testing.T) {
 	secretValue := `{"foo":"bar"}`
 	secretData["payload"] = secretValue
 
+	resources := []sm.SecretResourceIntf{
+		&sm.SecretResource{
+			Type:       utilpointer.StringPtr("testytype"),
+			Name:       utilpointer.StringPtr("testyname"),
+			SecretData: secretData,
+		}}
+
 	//good case: default version & deserialization
 	setDeserialization := func(smtc *secretManagerTestCase) {
-		resources := []sm.SecretResourceIntf{
-			&sm.SecretResource{
-				Type:       utilpointer.StringPtr("testytype"),
-				Name:       utilpointer.StringPtr("testyname"),
-				SecretData: secretData,
-			}}
 
 		smtc.apiOutput.Resources = resources
 		smtc.expectedData["foo"] = []byte("bar")
 	}
 
 	//bad case: invalid json
-	// setInvalidJSON := func(smtc *secretManagerTestCase) {
-	// 	smtc.apiOutput.Payload.Data = []byte(`-----------------`)
-	// 	smtc.expectError = "unable to unmarshal secret"
-	// }
+	setInvalidJSON := func(smtc *secretManagerTestCase) {
+
+		resources[0].
+			smtc.apiOutput.Payload.Data = []byte(`-----------------`)
+		smtc.expectError = "unable to unmarshal secret"
+	}
 
 	successCases := []*secretManagerTestCase{
 		makeValidSecretManagerTestCaseCustom(setDeserialization),
+		makeValidSecretManagerTestCaseCustom(setInvalidJSON),
 	}
 
 	sm := providerIBM{}

@@ -2,6 +2,7 @@ package ibm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/IBM/go-sdk-core/v5/core"
@@ -35,6 +36,7 @@ const (
 	errMissingStoreSpec                        = "store is missing spec"
 	errMissingProvider                         = "storeSpec is missing provider"
 	errInvalidProvider                         = "invalid provider spec. Missing IBM field in store %s"
+	errJSONSecretUnmarshal                     = "unable to unmarshal secret: %w"
 )
 
 type IBMSecretManagerClient interface {
@@ -111,7 +113,23 @@ func (ibm *providerIBM) GetSecretMap(ctx context.Context, ref esv1alpha1.Externa
 			SecretType: core.StringPtr(sm.GetSecretOptionsSecretTypeArbitraryConst),
 			ID:         &ref.Key,
 		})
-	return response, nil
+
+	secret := response.Resources[0].(*sm.SecretResource)
+	secretData := secret.SecretData.(map[string]interface{})
+	arbitrarySecretPayload := secretData["payload"].(string)
+
+	kv := make(map[string]string)
+	err = json.Unmarshal([]byte(arbitrarySecretPayload), &kv)
+	if err != nil {
+		return nil, fmt.Errorf(errJSONSecretUnmarshal, err)
+	}
+
+	secretMap := make(map[string][]byte)
+	for k, v := range kv {
+		secretMap[k] = []byte(v)
+	}
+
+	return secretMap, nil
 }
 
 func (p *providerIBM) NewClient(ctx context.Context, store esv1alpha1.GenericStore, kube kclient.Client, namespace string) (provider.SecretsClient, error) {
